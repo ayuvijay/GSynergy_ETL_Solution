@@ -1,0 +1,64 @@
+Explanation of Azure Data Factory (ADF) Pipeline JSON
+The ADF pipeline JSON file (GSynergy_ETL_Pipeline.json) is a configuration file that defines the pipeline steps.
+It performs ETL operations in Azure Data Factory (ADF), including:
+
+Step 1: Copy Raw Data from Azure Blob Storage
+
+Reads pipe-delimited raw data from Azure Blob Storage.
+Uses the DelimitedTextSource connector.
+Step 2: Transform & Load Data into SQL Data Warehouse
+
+Uses Data Flow to apply transformations.
+Writes transformed data into Azure SQL Data Warehouse (Synapse Analytics).
+
+
+Detailed Breakdown of GSynergy_ETL_Pipeline.json
+
+
+{
+    "name": "GSynergy_ETL_Pipeline",
+    "properties": {
+        "activities": [
+            {
+                "name": "CopyRawData",
+                "type": "Copy",
+                "dependsOn": [],
+                "linkedServiceName": {
+                    "referenceName": "AzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "formatSettings": {
+                            "columnDelimiter": "|"
+                        }
+                    },
+                    "sink": {
+                        "type": "AzureSqlDWTableSink"
+                    }
+                }
+            },
+            {
+                "name": "DataFlowTransformation",
+                "type": "DataFlow",
+                "dependsOn": [
+                    {
+                        "activity": "CopyRawData",
+                        "dependencyConditions": ["Succeeded"]
+                    }
+                ],
+                "linkedServiceName": {
+                    "referenceName": "AzureSQLDW",
+                    "type": "LinkedServiceReference"
+                },
+                "typeProperties": {
+                    "dataFlow": {
+                        "referenceName": "TransformationsDataFlow",
+                        "type": "DataFlowReference"
+                    }
+                }
+            }
+        ]
+    }
+}
