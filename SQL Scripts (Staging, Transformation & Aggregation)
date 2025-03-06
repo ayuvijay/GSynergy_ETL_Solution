@@ -1,0 +1,78 @@
+1. Staging Table (Raw Data Storage)
+
+CREATE TABLE staging_transactions (
+    order_id BIGINT,
+    line_id INT,
+    type VARCHAR(50),
+    dt DATETIME,
+    pos_site_id VARCHAR(50),
+    sku_id BIGINT,
+    fscldt_id INT,
+    price_substate_id VARCHAR(50),
+    sales_units INT,
+    sales_dollars DECIMAL(10,2),
+    discount_dollars DECIMAL(10,2),
+    original_order_id BIGINT NULL,
+    original_line_id INT NULL
+);
+
+2 Dimension Tables (Normalized Hierarchies)
+
+CREATE TABLE dim_product (
+    sku_id BIGINT PRIMARY KEY,
+    sku_label VARCHAR(255),
+    stylclr_id BIGINT,
+    stylclr_label VARCHAR(255),
+    styl_id BIGINT,
+    styl_label VARCHAR(255),
+    subcat_id INT,
+    subcat_label VARCHAR(255),
+    cat_id INT,
+    cat_label VARCHAR(255),
+    dept_id INT,
+    dept_label VARCHAR(255)
+);
+
+INSERT INTO dim_product (sku_id, sku_label, stylclr_id, stylclr_label, styl_id, styl_label, subcat_id, subcat_label, cat_id, cat_label, dept_id, dept_label)
+SELECT sku_id, sku_label, stylclr_id, stylclr_label, styl_id, styl_label, subcat_id, subcat_label, cat_id, cat_label, dept_id, dept_label
+FROM staging_transactions;
+
+3 Aggregation Table (mview_weekly_sales)
+
+CREATE TABLE mview_weekly_sales AS
+SELECT
+    pos_site_id,
+    sku_id,
+    fsclwk_id,
+    price_substate_id,
+    type,
+    SUM(sales_units) AS total_units,
+    SUM(sales_dollars) AS total_sales,
+    SUM(discount_dollars) AS total_discounts
+FROM staging_transactions
+GROUP BY pos_site_id, sku_id, fsclwk_id, price_substate_id, type;
+
+4 Incremental Load (Bonus Task)
+
+MERGE INTO mview_weekly_sales AS target
+USING (SELECT
+        pos_site_id, sku_id, fsclwk_id, price_substate_id, type,
+        SUM(sales_units) AS total_units,
+        SUM(sales_dollars) AS total_sales,
+        SUM(discount_dollars) AS total_discounts
+       FROM staging_transactions
+       WHERE fscldt_id > (SELECT MAX(fscldt_id) FROM mview_weekly_sales)
+       GROUP BY pos_site_id, sku_id, fsclwk_id, price_substate_id, type) AS source
+ON (target.pos_site_id = source.pos_site_id AND
+    target.sku_id = source.sku_id AND
+    target.fsclwk_id = source.fsclwk_id AND
+    target.price_substate_id = source.price_substate_id AND
+    target.type = source.type)
+WHEN MATCHED THEN
+    UPDATE SET
+        target.total_units = target.total_units + source.total_units,
+        target.total_sales = target.total_sales + source.total_sales,
+        target.total_discounts = target.total_discounts + source.total_discounts
+WHEN NOT MATCHED THEN
+    INSERT (pos_site_id, sku_id, fsclwk_id, price_substate_id, type, total_units, total_sales, total_discounts)
+    VALUES (source.pos_site_id, source.sku_id, source.fsclwk_id, source.price_substate_id, source.type, source.total_units, source.total_sales, source.total_discounts);
