@@ -1,0 +1,18 @@
+How to Import ADF JSON into Azure Data Factory
+
+1️Go to Azure Data Factory (ADF)
+
+Open Azure Portal → Search for "Data Factory" → Open your ADF instance.
+2️Import JSON Pipeline
+
+In ADF Studio, go to "Author"
+Click "Pipelines" → "Import from JSON"
+Upload GSynergy_ETL_Pipeline.json
+3️Configure Linked Services
+
+AzureBlobStorage: Connect to Azure Blob Storage
+AzureSQLDW: Connect to Azure Synapse Analytics (SQL Data Warehouse)
+4️Run the Pipeline
+
+Click "Trigger Now" to execute the ETL pipeline.
+Monitor logs in the "Monitor" section.
