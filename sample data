@@ -1,0 +1,21 @@
+1️. hier_prod_sample.dlm (Product Hierarchy)
+   (Pipe-delimited, .dlm format)
+
+sku_id|sku_label|stylclr_id|stylclr_label|styl_id|styl_label|subcat_id|subcat_label|cat_id|cat_label|dept_id|dept_label
+2230940206|COTTON UNDERWIRE CAMI WHITE 36C|2230940|COTTON UNDERWIRE CAMI WHITE|22309|COTTON UNDERWIRE CAMI|405|TOPS|1000|TOPS|2000|APPAREL
+2230940208|COTTON UNDERWIRE CAMI WHITE 38C|2230940|COTTON UNDERWIRE CAMI WHITE|22309|COTTON UNDERWIRE CAMI|405|TOPS|1000|TOPS|2000|APPAREL
+
+
+2. hier_possite_sample.dlm (POS Site Data)
+
+pos_site_id|location
+CATMAIN|Category Main Store
+INETMAIN|Internet Main Store
+
+
+3.fact_transactions_sample.dlm (Sales Transactions)
+
+
+order_id|line_id|type|dt|pos_site_id|sku_id|fscldt_id|price_substate_id|sales_units|sales_dollars|discount_dollars|original_order_id|original_line_id
+164087401|2|Sale|2016-01-31T06:17:01|CATMAIN|2668940801|20160131|FP|1|58.95|0||
+164087409|4|Sale|2016-01-31T06:17:25|CATMAIN|2920920601|20160131|FP|1|49.95|0||
