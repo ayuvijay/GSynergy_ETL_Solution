@@ -1,0 +1,46 @@
+{
+  "name": "GSynergy_ETL_Pipeline",
+  "activities": [
+    {
+      "name": "Copy Data from Blob to Staging",
+      "type": "CopyData",
+      "inputs": [
+        {
+          "name": "BlobStorageRawData"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SQLStagingTable"
+        }
+      ]
+    },
+    {
+      "name": "Data Flow Transformation",
+      "type": "DataFlow",
+      "inputs": [
+        {
+          "name": "SQLStagingTable"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "DataWarehouse"
+        }
+      ]
+    },
+    {
+      "name": "Stored Procedure - Aggregation",
+      "type": "StoredProcedure",
+      "linkedService": "AzureSQL",
+      "storedProcedureName": "sp_create_mview_weekly_sales"
+    },
+    {
+      "name": "Lookup for Incremental Load",
+      "type": "Lookup",
+      "source": {
+        "query": "SELECT MAX(fscldt_id) FROM mview_weekly_sales"
+      }
+    }
+  ]
+}
